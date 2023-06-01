@@ -2,10 +2,6 @@ import pytest
 from fixture.application import Application
 import json
 import os.path
-import importlib
-import jsonpickle
-from fixture.db import DBFixture
-from fixture.orm import ORMFixture
 
 fixture = None
 target = None
@@ -22,20 +18,13 @@ def load_config(file):
 def app(request):
     global fixture
     browser = request.config.getoption("--browser")
-    web_config = load_config(request.config.getoption("--target"))['web']
+    web = load_config(request.config.getoption("--target"))['web']
+    web_admin = load_config(request.config.getoption("--target"))['webadmin']
+    testdata = load_config(request.config.getoption("--target"))['testdata']
     if fixture is None or not fixture.is_valid():
-        fixture = Application(browser=browser)
-    fixture.session.ensure_login(username=web_config["username"], password=web_config["password"], base_url=web_config["baseurl"])
+        fixture = Application(browser=browser,testdata=testdata)
+    fixture.session.ensure_login(username=web_admin["username"], password=web_admin["password"], base_url=web["baseurl"])
     return fixture
-
-@pytest.fixture(scope="session")
-def orm(request):
-    db_config = load_config(request.config.getoption("--target"))['db']
-    ormfixture = ORMFixture(host=db_config['host'], name=db_config['name'], user=db_config['user'], password=db_config['password'])
-    def fin():
-        fixture.destroy()
-    request.addfinalizer(fin)
-    return ormfixture
 
 @pytest.fixture(scope="session", autouse=True)
 def stop(request):
