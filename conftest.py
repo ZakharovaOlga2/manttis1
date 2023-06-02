@@ -21,8 +21,10 @@ def app(request):
     web = load_config(request.config.getoption("--target"))['web']
     web_admin = load_config(request.config.getoption("--target"))['webadmin']
     testdata = load_config(request.config.getoption("--target"))['testdata']
+    soap = load_config(request.config.getoption("--target"))['soap']
     if fixture is None or not fixture.is_valid():
-        fixture = Application(browser=browser,testdata=testdata)
+        fixture = Application(browser=browser, testdata=testdata, wsdl=soap["wsdl"],username=web_admin["username"], password=web_admin["password"])
+    assert fixture.soap.can_login()
     fixture.session.ensure_login(username=web_admin["username"], password=web_admin["password"], base_url=web["baseurl"])
     return fixture
 
